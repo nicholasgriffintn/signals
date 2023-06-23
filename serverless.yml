@@ -1,0 +1,45 @@
+service: signals
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-west-1
+  stage: ${opt:stage, 'production'}
+  memorySize: 512
+  timeout: 30
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+    DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+    DATABASE_NAME: ${env:DATABASE_NAME}
+    DATABASE_HOST: ${env:DATABASE_HOST}
+    CAPTCHA_VERIFY_TOKEN: ${env:CAPTCHA_VERIFY_TOKEN}
+    CAPTCHA_SITE_KEY: ${env:CAPTCHA_SITE_KEY}
+    COMMS_PRODUCT_ID: ${env:COMMS_PRODUCT_ID}
+    AWS_COMMS_LAMBDA_NAME_SENDEMAIL: ${env:AWS_COMMS_LAMBDA_NAME_SENDEMAIL}
+    CLOUDFRONT_DIST_ID: ${env:CLOUDFRONT_DIST_ID}
+
+custom:
+  serverless-offline:
+    httpPort: 4443
+  prefix: ${self:provider.stage}-${self:service}
+
+functions:
+  api:
+    handler: server.handler
+    events:
+      - http:
+          method: GET
+          path: /
+          cors: true
+      - http:
+          method: GET
+          path: /health
+          cors: true
+      - http:
+          method: ANY
+          path: /{proxy+}
+          cors: true
